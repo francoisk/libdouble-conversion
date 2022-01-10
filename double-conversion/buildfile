@@ -1,38 +1,18 @@
-intf_libs = # Interface dependencies.
-impl_libs = # Implementation dependencies.
-#import xxxx_libs += libhello%lib{hello}
+lib{double-conversion}: libul{double-conversion}: {hxx cxx}{**}
 
-lib{double-conversion}: {hxx ixx txx cxx}{** -version} hxx{version} $impl_libs $intf_libs
-
-# Include the generated version header into the distribution (so that we don't
-# pick up an installed one) and don't remove it when cleaning in src (so that
-# clean results in a state identical to distributed).
+# Export all symbols from the DLL if on Windows.
 #
-hxx{version}: in{version} $src_root/manifest
-{
-  dist  = true
-  clean = ($src_root != $out_root)
-}
+libs{double-conversion}: def{double-conversion}: \
+  include = ($cxx.target.system == 'win32-msvc')
 
-hxx{export}@./: cxx.importable = false
+def{double-conversion}: libul{double-conversion}
 
-# Build options.
-#
-cxx.poptions =+ "-I$out_root" "-I$src_root"
-
-{hbmia obja}{*}: cxx.poptions += -DDOUBLE_CONVERSION_STATIC_BUILD
-{hbmis objs}{*}: cxx.poptions += -DDOUBLE_CONVERSION_SHARED_BUILD
+if ($cxx.target.system == 'mingw32')
+  cxx.loptions += -Wl,--export-all-symbols
 
 # Export options.
 #
-lib{double-conversion}:
-{
-  cxx.export.poptions = "-I$out_root" "-I$src_root"
-  cxx.export.libs = $intf_libs
-}
-
-liba{double-conversion}: cxx.export.poptions += -DDOUBLE_CONVERSION_STATIC
-libs{double-conversion}: cxx.export.poptions += -DDOUBLE_CONVERSION_SHARED
+lib{double-conversion}: cxx.export.poptions = "-I$src_root"
 
 # For pre-releases use the complete version to make sure they cannot be used
 # in place of another pre-release or the final version. See the version module
@@ -43,11 +23,7 @@ if $version.pre_release
 else
   lib{double-conversion}: bin.lib.version = "-$version.major.$version.minor"
 
-# Install into the double-conversion/ subdirectory of, say, /usr/include/
-# recreating subdirectories.
+# Install into the double-conversion/ subdirectory of, say, /usr/include/.
 #
-{hxx ixx txx}{*}:
-{
-  install         = include/double-conversion/
-  install.subdirs = true
-}
+hxx{*}:              install = include/double-conversion/
+hxx{bignum-dtoa}@./: install = false # Exclude the sole private header.
