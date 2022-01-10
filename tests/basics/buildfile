@@ -1,3 +1,3 @@
-import libs = double-conversion%lib{double-conversion}
+import libs = libdouble-conversion%lib{double-conversion}
 
-exe{driver}: {cxx}{driver} $libs
+exe{driver}: cxx{driver} $libs
